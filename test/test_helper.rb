@@ -17,7 +17,7 @@ require 'test/models'
 
 config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
 ActiveRecord::Base.configurations = config
-ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + '/debug.log')
+ActiveRecord::Base.logger = Logger.new(File.join(File.dirname(__FILE__), 'test.log'))
 ActiveRecord::Base.establish_connection(config[ENV['DB'] || 'sqlite3'])
 
 load(File.join(File.dirname(__FILE__), 'schema.rb'))
