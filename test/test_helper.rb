@@ -16,7 +16,8 @@ require 'ruby-debug'
 Debugger.settings[:autoeval] = true
 Debugger.start
 
-config = YAML::load(IO.read(File.join(TEST_DIR, '/database.yml'))
+config = YAML::load(IO.read(File.join(TEST_DIR, '/database.yml')))
+
 ActiveRecord::Base.configurations = config
 ActiveRecord::Base.logger = Logger.new(File.join(TEST_TMP_DIR, 'test.log'))
 ActiveRecord::Base.establish_connection(config[ENV['DB'] || 'sqlite3'])
