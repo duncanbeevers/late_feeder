@@ -1,3 +1,3 @@
 Factory.define(:user) do |f|
-  f.username "Allan"
+  f.sequence :username do |n| "Allan #{n}" end
 end
