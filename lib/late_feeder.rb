@@ -1,9 +1,17 @@
 module LateFeeder
   class ConnectionPoolPartnerThread < Thread
-    attr_reader :object_id
-    def initialize(object_id)
-      @object_id = object_id
+    PARTNER_THREAD_KEY = :found
+    def initialize
+      @spawning_thread = Thread.current
       super()
+    end
+    
+    def object_id
+      @spawning_thread.object_id
+    end
+    
+    def [](key)
+      PARTNER_THREAD_KEY == key ? super : @spawning_thread[key]
     end
   end
   
@@ -21,29 +29,21 @@ module LateFeeder
     end
     
     def initialize(find_class, *find_args, &find_block)
-      @worker = ConnectionPoolPartnerThread.new(Thread.current.object_id) do
+      @worker = ConnectionPoolPartnerThread.new do
         worker = Thread.current
         find_class.instance_eval do
-          worker[:found] = self.find_without_late_feeder(*find_args, &find_block)
+          worker[ConnectionPoolPartnerThread::PARTNER_THREAD_KEY] = self.find_without_late_feeder(*find_args, &find_block)
           worker.exit
         end
       end
     end
     
     def method_missing(method, *args, &block)
-      begin
-        # puts "method_missing: #[{self.__object_id__}] #{method.inspect} #{@result.inspect}"
-        if !@result
-          @worker.join
-          # puts "Setting result to #{@worker[:found]}"
-          @result = @worker[:found]
-        end
-        answer = @result.send(method, *args, &block)
-        # puts "#{method.inspect}: #{answer.inspect}"
-        answer
-      ensure
-        
+      if !@result
+        @worker.join
+        @result = @worker[ConnectionPoolPartnerThread::PARTNER_THREAD_KEY]
       end
+      @result.send(method, *args, &block)
     end
   end
   
