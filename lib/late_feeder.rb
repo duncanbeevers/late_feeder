@@ -13,6 +13,10 @@ module LateFeeder
     def [](key)
       PARTNER_THREAD_KEY == key ? super : @spawning_thread[key]
     end
+    
+    def []=(key, value)
+      PARTNER_THREAD_KEY == key ? super : @spawning_thread[key] = value
+    end
   end
   
   class LateFeedingCollection
